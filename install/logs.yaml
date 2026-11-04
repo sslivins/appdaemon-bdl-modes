@@ -1,0 +1,7 @@
+  bdl_modes_log:
+    name: BdlModes
+    filename: /conf/apps/bdl_modes/bdl_modes.log
+    log_size: 1048576       # 1 MB per file
+    log_generations: 5
+    format: "{asctime}.{msecs:03.0f} {levelname:<7} {message}"
+    date_format: "%Y-%m-%d %H:%M:%S"

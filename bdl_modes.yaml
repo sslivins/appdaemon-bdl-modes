@@ -1,0 +1,35 @@
+bdl_modes:
+  module: bdl_modes
+  class: BdlModes
+  log: bdl_modes_log
+
+  timezone: America/Vancouver
+
+  # Log every action instead of calling HA (the TB hand-off is skipped too).
+  dry_run: true
+
+  # Shared secret the hub sends as the X-API-Key header.
+  api_key: !secret bdl_modes_api_key
+
+  # bdl_modes talks to HA over REST with its own token (AppDaemon's state
+  # cache misses entities created after it started).
+  ha_url: http://192.168.10.212:8123
+  ha_token: !secret bdl_modes_ha_token
+
+  # Season is decided once when an operation is created.
+  season_entity: sensor.hvac_load_shift_metrics_outdoor_avg_day
+  season_threshold_c: 15
+  arrival_entity: input_datetime.bdl_arrival
+
+  # Phone push on failure (BDL HA has no companion app).
+  remote_notify:
+    - url: http://192.168.1.192:8123
+      token: !secret mi_ha_notify_token
+      service: notify.mobile_app_stefan
+
+  engine:
+    house_lead_h: 24        # thermostats + heat pump this long before arrival
+    amenities_lead_h: 6     # water heater + hot tub
+    arrive_grace_h: 2       # skip the arrival group if it would run later
+    patient_window_s: 3600  # background retries for hot tub / water heater
+    climate_gap_s: 1.5      # Nest API rate limit: min gap between writes
