@@ -234,8 +234,14 @@ class BdlModes(_Base):
 
     def _status_payload(self):
         op = self.engine.status()
+        occ = self.ha.get(bm_steps.OCCUPANCY_ENTITY) or {}
+        season, avg = self._season()
         out = {"active": None, "history": self.store.history(5),
-               "dry_run": self.dry_run, "server_time": self._iso(time.time())}
+               "dry_run": self.dry_run, "server_time": self._iso(time.time()),
+               "occupancy": occ.get("state"), "season": season,
+               "season_avg": avg,
+               "leads_h": {k: self.engine.cfg[k + "_lead_h"]
+                           for k in ("house", "amenities")}}
         if op:
             op = dict(op)
             op["arrival_iso"] = self._iso(op.get("arrival"))
