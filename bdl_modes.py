@@ -130,13 +130,13 @@ class BdlModes(_Base):
         here = os.path.dirname(os.path.abspath(__file__))
         self.store = Store(os.path.join(here, a.get("db", "bdl_modes.db")))
         self.engine = bm_engine.Engine(
-            self.ha, self.store, self._push, self._log, config=a.get("engine"))
+            self.ha, self.store, self._push, self._say, config=a.get("engine"))
         self._thread = threading.Thread(target=self._loop, daemon=True,
                                         name="bdl_modes")
         self._thread.start()
         self.register_endpoint(self._endpoint, "bdl_modes")
         self.run_every(self._publish, "now+5", 30)
-        self._log("initialized (dry_run=%s)" % self.dry_run)
+        self._say("initialized (dry_run=%s)" % self.dry_run)
 
     def terminate(self):
         self.engine.stop()
@@ -144,9 +144,9 @@ class BdlModes(_Base):
 
     def _loop(self):
         self.engine.loop()
-        self._log("engine thread stopped")
+        self._say("engine thread stopped")
 
-    def _log(self, msg, level="INFO"):
+    def _say(self, msg, level="INFO"):
         self.log(msg, level=level)
 
     # ------------------------------------------------------------ endpoint
@@ -162,7 +162,7 @@ class BdlModes(_Base):
         except ValueError as exc:
             return {"error": str(exc)}, 400
         except Exception as exc:  # noqa: BLE001
-            self._log("endpoint %s failed: %s" % (cmd, exc), "ERROR")
+            self._say("endpoint %s failed: %s" % (cmd, exc), "ERROR")
             return {"error": "internal error"}, 500
 
     def _command(self, cmd, data):
@@ -274,7 +274,7 @@ class BdlModes(_Base):
 
     # -------------------------------------------------------------- notify
     def _push(self, title, message):
-        self._log("NOTIFY %s: %s" % (title, message), "WARNING")
+        self._say("NOTIFY %s: %s" % (title, message), "WARNING")
         for r in self.remote_notify:
             svc = str(r["service"]).replace("notify.", "").replace(
                 "notify/", "")
@@ -286,5 +286,5 @@ class BdlModes(_Base):
                     json={"title": title, "message": message}, timeout=10)
                 resp.raise_for_status()
             except Exception as exc:  # noqa: BLE001
-                self._log("remote push via %s failed: %s" % (r["url"], exc),
+                self._say("remote push via %s failed: %s" % (r["url"], exc),
                           "ERROR")
