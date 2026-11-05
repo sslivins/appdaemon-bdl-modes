@@ -276,24 +276,17 @@ def _vacation_steps(season):
                   {"action": "switch/turn_off",
                    "data": {"entity_id": "switch.patio_deck_heaters"},
                    "description": "Patio deck heaters off"}]),
+        # Power off shuts the whole unit down (heater included). The other
+        # Napoleon entities report unavailable while powered off, so only
+        # the power switch can be written and verified.
         _step("fireplaces_off", "Turn Off Fireplaces", "fas fa-fire", [
-            {"action": "climate/set_hvac_mode",
-             "data": {"entity_id": "climate.master_bedroom_2",
-                      "hvac_mode": "off"},
-             "description": "Master Bedroom fireplace heater off",
-             "delay_after": 1},
             {"action": "switch/turn_off",
              "data": {"entity_id": "switch.master_bedroom"},
-             "description": "Master Bedroom fireplace flames off",
-             "delay_after": 1},
-            {"action": "climate/set_hvac_mode",
-             "data": {"entity_id": "climate.living_room_fireplace",
-                      "hvac_mode": "off"},
-             "description": "Living Room fireplace heater off",
+             "description": "Master Bedroom fireplace power off",
              "delay_after": 1},
             {"action": "switch/turn_off",
              "data": {"entity_id": "switch.living_room_fireplace"},
-             "description": "Living Room fireplace flames off"},
+             "description": "Living Room fireplace power off"},
         ]),
         _occupancy_step("away"),
     ]

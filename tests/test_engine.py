@@ -208,6 +208,17 @@ class TestHome(Base):
         self.assertTrue(seen)
         self.assertEqual(set(seen), {"running"})
 
+    def test_vacation_ok_when_fireplace_entities_unavailable(self):
+        # Napoleon marks everything but the power switch unavailable while
+        # the fireplace is off.
+        for e in ("climate.master_bedroom_2", "climate.living_room_fireplace"):
+            self.ha.down[e] = None
+        self.e.start("vacation", "heating")
+        self.drain()
+        self.assertEqual(self.e.status()["status"], "done")
+        self.assertEqual(self.ha.states["switch.living_room_fireplace"]
+                         ["state"], "off")
+
 
 class TestRetries(Base):
     def test_quick_retry_recovers(self):
