@@ -361,6 +361,7 @@ class Engine:
             g["status"] = "running"
             g["started"] = g["started"] or now
             self._log_op("%s started" % g["name"])
+            self._refresh_status()
             self._save()
         for s in g["steps"]:
             if s["status"] != STEP_PENDING:

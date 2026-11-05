@@ -195,6 +195,19 @@ class TestHome(Base):
         self.assertEqual(a["id"], b["id"])
         self.assertEqual(self.e.gen, 1)
 
+    def test_status_is_running_while_a_group_executes(self):
+        seen = []
+        real = self.ha.call
+
+        def spy(action, data):
+            seen.append(self.e.op["status"])
+            return real(action, data)
+        self.ha.call = spy
+        self.e.start("vacation", "heating")
+        self.drain()
+        self.assertTrue(seen)
+        self.assertEqual(set(seen), {"running"})
+
 
 class TestRetries(Base):
     def test_quick_retry_recovers(self):
