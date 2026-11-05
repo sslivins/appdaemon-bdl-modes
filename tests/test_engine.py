@@ -300,8 +300,8 @@ class TestRetries(Base):
         self.assertIn("verify", s["error"])
 
     def test_delay_after_honoured_on_failure(self):
-        # fireplace heater fails; the next action must still wait 1 s
-        self.ha.down["climate.master_bedroom_2"] = None
+        # master fireplace power fails; the next action must still wait 1 s
+        self.ha.down["switch.master_bedroom"] = None
         self.e.start("vacation", "heating", skip_steps=[
             s["id"] for _, steps in bm_steps.build_groups(
                 "vacation", "heating") for s in steps
@@ -309,9 +309,9 @@ class TestRetries(Base):
         self.drain(until=T0 + 1)
         calls = self.ha.calls
         t_fail = [t for t, a, d in calls
-                  if d["entity_id"] == "climate.master_bedroom_2"][0]
-        t_next = [t for t, a, d in calls
                   if d["entity_id"] == "switch.master_bedroom"][0]
+        t_next = [t for t, a, d in calls
+                  if d["entity_id"] == "switch.living_room_fireplace"][0]
         self.assertGreaterEqual(t_next - t_fail, 1)
 
 
