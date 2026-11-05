@@ -6,7 +6,7 @@ bdl_modes:
   timezone: America/Vancouver
 
   # Log every action instead of calling HA (the TB hand-off is skipped too).
-  dry_run: true
+  dry_run: false
 
   # Shared secret the hub sends as the X-API-Key header.
   api_key: !secret bdl_modes_api_key

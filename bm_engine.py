@@ -89,6 +89,8 @@ class Engine:
     def _recover(self):
         """After a restart: anything mid-flight is re-run (all actions are
         idempotent set-to-value calls)."""
+        if self.op["status"] in ("done", "failed", "cancelled", "superseded"):
+            return
         for g in self.op["groups"]:
             if g["status"] == "running":
                 g["status"] = "pending"
