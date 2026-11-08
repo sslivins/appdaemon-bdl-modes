@@ -66,7 +66,9 @@ that was mid-flight is re-run; every action is an idempotent set-to-value.
 | `cancel` | - |
 
 Every command returns the status payload. The app also publishes
-`sensor.bdl_modes_status` to HA every 30 s.
+`sensor.bdl_modes_status` to HA every 30 s. Its `issues` attribute lists the
+failed steps that are still wrong now: each publish re-checks them, so an
+issue clears once someone fixes it by hand (e.g. turns the fireplace off).
 
 ## Install
 

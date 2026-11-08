@@ -299,6 +299,18 @@ class TestRetries(Base):
         self.assertEqual(s["status"], "failed")
         self.assertIn("verify", s["error"])
 
+    def test_failed_step_clears_once_fixed(self):
+        self.ha.ignore.add("switch.patio_deck_heaters")
+        self.ha.states["switch.patio_deck_heaters"] = {
+            "state": "on", "attributes": {}}
+        self.e.start("vacation", "heating")
+        self.drain()
+        op = self.e.status()
+        alias = self.step(op, "patio_off")["alias"]
+        self.assertEqual(bm_engine.unresolved(op, self.ha.get), [alias])
+        self.ha.states["switch.patio_deck_heaters"]["state"] = "off"
+        self.assertEqual(bm_engine.unresolved(op, self.ha.get), [])
+
     def test_delay_after_honoured_on_failure(self):
         # master fireplace power fails; the next action must still wait 1 s
         self.ha.down["switch.master_bedroom"] = None
