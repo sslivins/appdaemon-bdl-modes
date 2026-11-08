@@ -270,6 +270,7 @@ class BdlModes(_Base):
             "next_group": nxt[0]["label"] if nxt else None,
             "next_due": self._iso(nxt[0]["due"]) if nxt else None,
             "retrying": retrying, "failed": failed,
+            "issues": bm_engine.unresolved(op, self.ha.get),
             "dry_run": op["dry_run"]})
 
     # -------------------------------------------------------------- notify

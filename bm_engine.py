@@ -607,6 +607,33 @@ class Engine:
 
 
 # ------------------------------------------------------------- verification
+def unresolved(op, get):
+    """Aliases of the op's failed steps that are still wrong right now.
+
+    A failed step drops out once every verifiable action checks out (e.g. a
+    fireplace that wouldn't turn off has since been turned off). Steps with
+    nothing to verify stay listed.
+    """
+    out = []
+    for g in (op or {}).get("groups", []):
+        for s in g["steps"]:
+            if s["status"] != STEP_FAILED:
+                continue
+            verifiable, bad = False, False
+            for a in s.get("actions", []):
+                checks = expected_checks(a["action"], a.get("data", {}))
+                eids = a.get("data", {}).get("entity_id")
+                if not checks or not eids:
+                    continue
+                verifiable = True
+                for e in eids if isinstance(eids, list) else [eids]:
+                    if check_state(e, get(e), checks):
+                        bad = True
+            if bad or not verifiable:
+                out.append(s["alias"])
+    return out
+
+
 def expected_checks(action, data):
     """List of (kind, key, expected) checks after a service call."""
     domain, service = action.split("/")
