@@ -12,6 +12,7 @@ state under ``lock`` and wake the loop.
 """
 
 import copy
+import datetime as dt
 import threading
 import time
 import uuid
@@ -31,6 +32,8 @@ NUMERIC_TOL = 0.5
 
 DEFAULTS = {
     "house_lead_h": 24.0,
+    "house_start": None,            # "HH:MM" local, day before arrival;
+                                    # overrides house_lead_h when set
     "amenities_lead_h": 6.0,
     "arrive_grace_h": 2.0,          # run "arrive" at most this late
     "max_arrival_days": 60,
@@ -55,7 +58,7 @@ class Stopping(Exception):
 
 class Engine:
     def __init__(self, ha, store, notify, log, clock=time.time, config=None,
-                 sleep=None):
+                 sleep=None, tz=None):
         """ha:     object with call(action, data) -> (ok, err) and
                    get(entity_id) -> state dict | None
         store:  object with load() -> dict|None, save(dict),
@@ -63,9 +66,11 @@ class Engine:
         notify: callable(title, message)
         log:    callable(msg, level="INFO")
         sleep:  optional callable(seconds) for tests (default waits on the
-                   wake condition so commands/stop interrupt it)"""
+                   wake condition so commands/stop interrupt it)
+        tz:     tzinfo for the local-clock house_start (default UTC)"""
         self.ha, self.store, self.notify, self.log = ha, store, notify, log
         self.clock = clock
+        self.tz = tz or dt.timezone.utc
         self.cfg = dict(DEFAULTS)
         self.cfg.update(config or {})
         self.lock = threading.RLock()
@@ -214,6 +219,12 @@ class Engine:
     def _due(self, kind, group, arrival, now):
         if kind != "preheat":
             return now
+        if group == "house" and self.cfg.get("house_start"):
+            hh, mm = (int(x) for x in str(self.cfg["house_start"]).split(":"))
+            day = dt.datetime.fromtimestamp(arrival, self.tz).date() - \
+                dt.timedelta(days=1)
+            start = dt.datetime.combine(day, dt.time(hh, mm), tzinfo=self.tz)
+            return max(now, start.timestamp())
         lead = {"house": self.cfg["house_lead_h"],
                 "amenities": self.cfg["amenities_lead_h"],
                 "arrive": 0.0}[group]

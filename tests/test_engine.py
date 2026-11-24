@@ -352,6 +352,47 @@ class TestPreheat(Base):
         self.assertEqual(self.ha.states["input_select.bdl_occupancy"][
             "state"], "home")
 
+    def make_start(self, start="08:00", tz=None):
+        return bm_engine.Engine(
+            self.ha, self.store, lambda t, m: None,
+            lambda m, level="INFO": None, clock=self.clock,
+            sleep=self.clock.sleep, config={"house_start": start}, tz=tz)
+
+    def test_house_start_is_morning_before_arrival(self):
+        import datetime as dt
+        tz = dt.timezone(dt.timedelta(hours=-7))
+        now = dt.datetime(2026, 12, 1, 9, 0, tzinfo=tz).timestamp()
+        self.clock.t = now
+        self.e = self.make_start(tz=tz)
+        for arr_h, arr_m in ((16, 0), (0, 30), (23, 45)):
+            arr = dt.datetime(2026, 12, 4, arr_h, arr_m, tzinfo=tz).timestamp()
+            op = self.e.start("preheat", "heating", arrival=arr)
+            self.assertEqual(
+                self.group(op, "house")["due"],
+                dt.datetime(2026, 12, 3, 8, 0, tzinfo=tz).timestamp())
+            self.assertEqual(self.group(op, "amenities")["due"], arr - 6 * H)
+
+    def test_house_start_already_past_runs_now(self):
+        import datetime as dt
+        tz = dt.timezone(dt.timedelta(hours=-7))
+        self.clock.t = dt.datetime(2026, 12, 3, 12, 0, tzinfo=tz).timestamp()
+        self.e = self.make_start(tz=tz)
+        arr = dt.datetime(2026, 12, 4, 16, 0, tzinfo=tz).timestamp()
+        op = self.e.start("preheat", "heating", arrival=arr)
+        self.assertEqual(self.group(op, "house")["due"], self.clock.t)
+
+    def test_house_start_follows_moved_arrival(self):
+        import datetime as dt
+        tz = dt.timezone(dt.timedelta(hours=-7))
+        self.clock.t = dt.datetime(2026, 12, 1, 9, 0, tzinfo=tz).timestamp()
+        self.e = self.make_start(tz=tz)
+        arr = dt.datetime(2026, 12, 4, 16, 0, tzinfo=tz).timestamp()
+        self.e.start("preheat", "heating", arrival=arr)
+        self.e.update_arrival(arr + 24 * H)
+        self.assertEqual(
+            self.group(self.e.status(), "house")["due"],
+            dt.datetime(2026, 12, 4, 8, 0, tzinfo=tz).timestamp())
+
     def test_short_notice_runs_house_now(self):
         arr = T0 + 3 * H
         op = self.e.start("preheat", "heating", arrival=arr)
