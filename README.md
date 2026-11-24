@@ -15,7 +15,7 @@ the progress the app reports.
 |---|---|---|
 | `vacation` | vacation | now |
 | `home` | house, amenities, arrive | now |
-| `preheat` | house, amenities, arrive | house at arrival - 24 h, amenities (hot tub, water heater) at arrival - 6 h, arrive at arrival |
+| `preheat` | house, amenities, arrive | house at `house_start` (e.g. 08:00) the day before arrival, else arrival - `house_lead_h` (24 h), amenities (hot tub, water heater) at arrival - 6 h, arrive at arrival |
 
 * **house** sets occupancy (`input_select.bdl_occupancy` = `preheat`/`home`)
   and turns the legacy away boolean off. It then waits until the thermal

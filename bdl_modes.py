@@ -130,7 +130,8 @@ class BdlModes(_Base):
         here = os.path.dirname(os.path.abspath(__file__))
         self.store = Store(os.path.join(here, a.get("db", "bdl_modes.db")))
         self.engine = bm_engine.Engine(
-            self.ha, self.store, self._push, self._say, config=a.get("engine"))
+            self.ha, self.store, self._push, self._say, config=a.get("engine"),
+            tz=self.tz)
         self._thread = threading.Thread(target=self._loop, daemon=True,
                                         name="bdl_modes")
         self._thread.start()
@@ -241,7 +242,8 @@ class BdlModes(_Base):
                "occupancy": occ.get("state"), "season": season,
                "season_avg": avg,
                "leads_h": {k: self.engine.cfg[k + "_lead_h"]
-                           for k in ("house", "amenities")}}
+                           for k in ("house", "amenities")},
+               "house_start": self.engine.cfg.get("house_start")}
         if op:
             op = dict(op)
             op["arrival_iso"] = self._iso(op.get("arrival"))

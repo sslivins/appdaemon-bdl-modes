@@ -29,6 +29,7 @@ bdl_modes:
 
   engine:
     house_lead_h: 24        # thermostats + heat pump this long before arrival
+    house_start: "08:00"    # ...or at this local time the day before (wins)
     amenities_lead_h: 6     # water heater + hot tub
     arrive_grace_h: 2       # skip the arrival group if it would run later
     patient_window_s: 3600  # background retries for hot tub / water heater
